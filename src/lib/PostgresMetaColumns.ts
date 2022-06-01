@@ -139,6 +139,16 @@ WHERE
     }
     const { name: table, schema } = data!
 
+    let isNullableClause = ''
+    if (is_nullable !== undefined) {
+      if (is_nullable)
+      {
+        isNullableClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} DROP  NOT NULL;`
+      }else
+      {
+        isNullableClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} SET  NOT NULL;`
+      } 
+    }
     let defaultValueClause = ''
     if (is_identity) {
       if (default_value !== undefined) {
@@ -149,6 +159,9 @@ WHERE
       }
 
       defaultValueClause = ` ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)}  ADD GENERATED ${identity_generation} AS IDENTITY;`
+
+      //Overriding theb not null clause
+      isNullableClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} SET  NOT NULL ;`
     } else {
       if (default_value === undefined) {
         // skip
@@ -159,17 +172,7 @@ WHERE
       }
     }
 
-    let isNullableClause = ''
-    if (is_nullable !== undefined) {
-      if (is_nullable)
-      {
-        isNullableClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} DROP  NOT NULL ${default_value};`
-      }else
-      {
-        isNullableClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} SET  NOT NULL ${default_value};`
-      }
-      
-    }
+
     let isPrimaryKeyClause = ''
     if(is_primary_key)
       isPrimaryKeyClause = `ALTER TABLE ${ident(schema)}.${ident(table)}  ADD PRIMARY KEY (${ident(name)} );`
@@ -184,8 +187,8 @@ WHERE
 BEGIN;
   ALTER TABLE ${ident(schema)}.${ident(table)} ADD COLUMN ${ident(name)} ${typeIdent(type)}
     ${checkSql};
-    ${defaultValueClause}
     ${isNullableClause}
+    ${defaultValueClause}
     ${isPrimaryKeyClause}
     ${isUniqueClause}
     

@@ -73,12 +73,12 @@ Helpers:
 Set the following ENV VARS:
 
 ```bash
-PG_META_PORT=8080
-PG_META_DB_HOST="postgres"
-PG_META_DB_NAME="postgres"
-PG_META_DB_USER="postgres"
-PG_META_DB_PORT=5432
-PG_META_DB_PASSWORD="postgres"
+export PG_META_PORT=8080
+export PG_META_DB_HOST="db"
+export PG_META_DB_NAME="db"
+export PG_META_DB_USER="postgres"
+export PG_META_DB_PORT=5433
+export PG_META_DB_PASSWORD="postgres"
 ```
 
 Then run any of the binaries in the releases.
