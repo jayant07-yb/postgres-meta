@@ -1,3 +1,4 @@
+import { format } from 'path/posix'
 import { ident, literal } from 'pg-format'
 import { DEFAULT_SYSTEM_SCHEMAS } from './constants'
 import { coalesceRowsToArray } from './helpers'
