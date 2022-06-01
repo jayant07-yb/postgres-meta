@@ -148,23 +148,32 @@ WHERE
         }
       }
 
-      defaultValueClause = `GENERATED ${identity_generation} AS IDENTITY`
+      defaultValueClause = ` ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)}  ADD GENERATED ${identity_generation} AS IDENTITY;`
     } else {
       if (default_value === undefined) {
         // skip
       } else if (default_value_format === 'expression') {
-        defaultValueClause = `DEFAULT ${default_value}`
+        defaultValueClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} SET  DEFAULT ${default_value};`
       } else {
-        defaultValueClause = `DEFAULT ${literal(default_value)}`
+        defaultValueClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} SET  DEFAULT ${literal(default_value)};`
       }
     }
 
     let isNullableClause = ''
     if (is_nullable !== undefined) {
-      isNullableClause = is_nullable ? 'NULL' : 'NOT NULL'
+      if (is_nullable)
+      {
+        isNullableClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} DROP  NOT NULL ${default_value};`
+      }else
+      {
+        isNullableClause = `ALTER TABLE ${ident(schema)}.${ident(table)} ALTER COLUMN ${ident(name)} SET  NOT NULL ${default_value};`
+      }
+      
     }
-    const isPrimaryKeyClause = is_primary_key ? 'PRIMARY KEY' : ''
-    const isUniqueClause = is_unique ? 'UNIQUE' : ''
+    let isPrimaryKeyClause = ''
+    if(is_primary_key)
+      isPrimaryKeyClause = `ALTER TABLE ${ident(schema)}.${ident(table)}  ADD PRIMARY KEY (${ident(name)} );`
+    const isUniqueClause = is_unique ? `ALTER TABLE ${ident(schema)}.${ident(table)}  ADD UNIQUE (${ident(name)} );`: ''
     const checkSql = check === undefined ? '' : `CHECK (${check})`
     const commentSql =
       comment === undefined
@@ -174,11 +183,13 @@ WHERE
     const sql = `
 BEGIN;
   ALTER TABLE ${ident(schema)}.${ident(table)} ADD COLUMN ${ident(name)} ${typeIdent(type)}
+    ${checkSql};
     ${defaultValueClause}
     ${isNullableClause}
     ${isPrimaryKeyClause}
     ${isUniqueClause}
-    ${checkSql};
+    
+  
   ${commentSql};
 COMMIT;`
     {
@@ -189,7 +200,6 @@ COMMIT;`
     }
     return await this.retrieve({ name, table, schema })
   }
-
   async update(
     id: string,
     {
